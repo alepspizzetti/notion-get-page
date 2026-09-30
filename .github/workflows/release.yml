@@ -24,6 +24,7 @@ jobs:
         id: release-tag
         env:
           INPUT_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
             tag="$INPUT_VERSION"
@@ -31,11 +32,11 @@ jobs:
               echo "Invalid version tag: $tag" >&2
               exit 1
             fi
-            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            if gh release view "$tag" >/dev/null 2>&1; then
               git checkout --detach "$tag"
             else
-              git tag "$tag" "$GITHUB_SHA"
-              git push origin "$tag"
+              git tag -f "$tag" "$GITHUB_SHA"
+              git push --force origin "$tag"
             fi
           else
             tag="$GITHUB_REF_NAME"

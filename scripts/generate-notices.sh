@@ -6,6 +6,9 @@ output=$1
 module_list=$(mktemp)
 trap 'rm -f "$module_list"' 0
 trap 'exit 1' 1 2 3 15
+# Load module source directories before reading their license files. Some
+# transitive modules are listed by `go list -m all` without being downloaded.
+go mod download all
 go list -m -f '{{if not .Main}}{{.Path}} {{.Version}} {{.Dir}}{{end}}' all > "$module_list"
 
 {
