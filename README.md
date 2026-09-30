@@ -10,7 +10,7 @@ Primeira implementação. A leitura de uma página privada fornecida pelo usuár
 
 O [instalador](install.sh) baixa a [release](https://github.com/alepspizzetti/notion-get-page/releases) para Linux x86-64, verifica os checksums e instala `notion-getpage` em `~/.local/bin`, sem `sudo` nem Go na máquina. A licença e os avisos das dependências ficam em `~/.local/share/doc/notion-getpage`. O instalador usa `curl` ou `wget` e `sha256sum`. O Chrome for Testing é baixado automaticamente no primeiro uso. Ainda é necessário entrar na sua conta do Notion com `notion-getpage login` após a instalação e após cada reinício.
 
-Para instalar a versão mais recente, execute:
+Após a publicação da primeira release, instale a versão mais recente com:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/alepspizzetti/notion-get-page/master/install.sh | sh
