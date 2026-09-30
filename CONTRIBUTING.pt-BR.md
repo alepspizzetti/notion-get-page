@@ -49,3 +49,7 @@ Nunca inclua senhas do Notion, cookies, perfis do navegador, URLs de páginas pr
 Mantenha o sandbox e o isolamento entre sites do navegador ativos. A permissão de clipboard é concedida apenas durante a extração; não amplie seu alcance sem motivo claro. Trate o conteúdo da página como entrada não confiável, especialmente quando ele for lido por agentes de IA.
 
 Ao propor uma alteração, descreva o que mudou, como foi testado e quais limites permanecem. Não publique nem cole o resultado de um workspace privado para demonstrar sucesso.
+
+## Publicar uma release
+
+No GitHub, abra **Actions → Release → Run workflow**, informe uma versão como `v0.1.0` e execute o workflow a partir de `master`. Ele cria a tag se necessário, executa os testes, compila o binário para Linux x86-64 e publica os arquivos da release. Nas próximas versões, use uma nova versão, como `v0.1.1`.

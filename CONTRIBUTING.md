@@ -49,3 +49,7 @@ Never include Notion passwords, cookies, browser profiles, private page URLs, or
 Keep the browser sandbox and site isolation enabled. The clipboard permission is granted only during extraction; do not expand its scope without a clear reason. Treat page content as untrusted input, especially when it will be read by AI agents.
 
 When proposing a change, include what changed, how you tested it, and any remaining limitations. Do not publish or paste output from a private workspace to demonstrate success.
+
+## Publish a release
+
+On GitHub, open **Actions → Release → Run workflow**, enter a semantic version such as `v0.1.0`, and start the workflow from `master`. It creates the tag when needed, runs tests, builds the Linux x86-64 binary, and publishes the release assets. Future releases use a new version such as `v0.1.1`.

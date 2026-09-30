@@ -17,6 +17,8 @@ curl -fsSL https://raw.githubusercontent.com/alepspizzetti/notion-get-page/maste
 notion-getpage login
 ```
 
+Para criar a primeira release, um mantenedor pode abrir [Actions → Release](https://github.com/alepspizzetti/notion-get-page/actions/workflows/release.yml), clicar em **Run workflow** e manter `v0.1.0` como versão. O workflow testa o projeto, publica o binário e seus checksums; depois disso, o comando de instalação acima estará disponível.
+
 Se `~/.local/bin` não estiver no `PATH`, execute `~/.local/bin/notion-getpage` ou adicione esse diretório ao `PATH`. Para atualizar o binário, rode o instalador novamente. O projeto ainda não oferece uma release funcional para macOS ou Windows.
 
 ## Compilar
