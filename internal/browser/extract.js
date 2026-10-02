@@ -55,6 +55,21 @@ async () => {
   const title = (titleNode?.textContent || '').trim();
   let markdown = '';
   let source = 'clipboard';
+  const escapeMarkdown = text => text.replace(/([\\*_[\]`])/g, '\\$1');
+  const inline = node => {
+    if (node.nodeType === Node.TEXT_NODE) return escapeMarkdown(node.textContent || '');
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+    const tag = node.tagName.toLowerCase();
+    if (tag === 'br') return '\n';
+    if (tag === 'img' && node.alt && node.classList.contains('notion-emoji')) return node.alt;
+    const text = [...node.childNodes].map(inline).join('');
+    if (tag === 'a' && node.href) return `[${text}](${node.href})`;
+    if (tag === 'strong' || tag === 'b') return `**${text}**`;
+    if (tag === 'em' || tag === 'i') return `*${text}*`;
+    if (tag === 's' || tag === 'del' || tag === 'strike') return `~~${text}~~`;
+    if (tag === 'code') return `\`${text.replaceAll('`', '\\`')}\``;
+    return text;
+  };
 
   // Notion handles the browser copy event and usually places Markdown in text/plain.
   try {
@@ -98,21 +113,6 @@ async () => {
       leavesByBlock.get(block).push(leaf);
     }
     const ownLeaves = block => leavesByBlock.get(block) || [];
-    const escapeMarkdown = text => text.replace(/([\\*_[\]`])/g, '\\$1');
-    const inline = node => {
-      if (node.nodeType === Node.TEXT_NODE) return escapeMarkdown(node.textContent || '');
-      if (node.nodeType !== Node.ELEMENT_NODE) return '';
-      const tag = node.tagName.toLowerCase();
-      if (tag === 'br') return '\n';
-      if (tag === 'img' && node.alt && node.classList.contains('notion-emoji')) return node.alt;
-      const text = [...node.childNodes].map(inline).join('');
-      if (tag === 'a' && node.href) return `[${text}](${node.href})`;
-      if (tag === 'strong' || tag === 'b') return `**${text}**`;
-      if (tag === 'em' || tag === 'i') return `*${text}*`;
-      if (tag === 's' || tag === 'del' || tag === 'strike') return `~~${text}~~`;
-      if (tag === 'code') return `\`${text.replaceAll('`', '\\`')}\``;
-      return text;
-    };
     const ownText = block => ownLeaves(block).map(leaf => inline(leaf)).join('\n').trim();
     const ownPlainText = block => ownLeaves(block).map(leaf => leaf.textContent || '').join('\n').trim();
     const escapeCell = text => text.replaceAll('|', '\\|').replaceAll('\n', '<br>');
@@ -195,6 +195,71 @@ async () => {
       markdown = `# ${title}${rest ? `\n\n${rest}` : ''}`;
     }
     else markdown = `# ${title}${markdown ? `\n\n${markdown}` : ''}`;
+  }
+  const waitFor = async find => {
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const found = find();
+      if (found) return found;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return null;
+  };
+  const commentsButton = await waitFor(() => [...document.querySelectorAll('[role="button"]')]
+    .find(button => /^(Comentários|Comments)$/.test(button.getAttribute('aria-label') || '')));
+  if (commentsButton) {
+    commentsButton.click();
+    const viewAll = await waitFor(() => [...document.querySelectorAll('[role="button"]')]
+      .find(button => /^(Ver tudo|View all|See all)$/i.test(button.textContent.trim())));
+    if (viewAll) {
+      viewAll.click();
+      const scroller = await waitFor(() => document.querySelector('.notion-update-sidebar-tab-comments-comments-scroller'));
+      if (scroller) {
+        const threads = new Map();
+        const incomplete = new Set();
+        let stable = 0;
+        for (let step = 0; step < 100; step++) {
+          for (const item of scroller.querySelectorAll('.notion-update-sidebar-tab-comments-discussion-item')) {
+            const id = [...item.classList].find(name => name.startsWith('sidebar-discussion-'))?.slice(19);
+            if (!id) continue;
+            const messages = [...item.querySelectorAll('[aria-label="Ações de comentários"], [aria-label="Comment actions"]')]
+              .map(actions => {
+                const row = actions.parentElement?.parentElement?.parentElement?.parentElement;
+                const body = row?.querySelector('.content-editable-leaf-rtl:not(.discussion-input-text-block)');
+                const author = row?.querySelector('[aria-label]')?.getAttribute('aria-label') || 'Autor desconhecido';
+                const content = body && inline(body).trim();
+                return content ? `- **${escapeMarkdown(author)}:** ${content.replaceAll('\n', '\n  ')}` : '';
+              }).filter(Boolean);
+            if (messages.length) {
+              threads.set(id, messages);
+              incomplete.delete(id);
+            } else incomplete.add(id);
+          }
+          const previous = scroller.scrollTop;
+          scroller.scrollTop += scroller.clientHeight;
+          await new Promise(resolve => setTimeout(resolve, 200));
+          stable = scroller.scrollTop === previous ? stable + 1 : 0;
+          if (stable === 3) break;
+        }
+        if (incomplete.size) warnings.push('Uma discussão não forneceu o texto dos comentários.');
+        const annotated = [...root.querySelectorAll('[class*="discussion-id-"]')]
+          .flatMap(node => [...node.classList].filter(name => name.startsWith('discussion-id-')).map(name => name.slice(14)));
+        if (annotated.some(id => !threads.has(id)))
+          warnings.push('Alguns comentários marcados na página não apareceram na lista de discussões.');
+        if (threads.size) {
+          const sections = [...threads].map(([id, messages], index) => {
+            const anchor = [...root.querySelectorAll('[class*="discussion-id-"]')]
+              .find(node => node.classList.contains(`discussion-id-${id}`));
+            const context = anchor?.textContent.trim().replace(/\s+/g, ' ').slice(0, 160);
+            return `### ${context ? `Sobre: ${escapeMarkdown(context)}` : `Discussão da página ${index + 1}`}\n\n${messages.join('\n\n')}`;
+          });
+          markdown = `${markdown.trimEnd()}\n\n## Comentários\n\n${sections.join('\n\n')}`;
+        }
+      } else warnings.push('O painel de comentários não abriu; os comentários podem estar ausentes.');
+    } else if (root.querySelector('[class*="discussion-id-"]')) {
+      warnings.push('A lista de comentários não abriu; os comentários podem estar ausentes.');
+    }
+  } else if (root.querySelector('[class*="discussion-id-"]')) {
+    warnings.push('O controle de comentários não apareceu; os comentários podem estar ausentes.');
   }
   if (!markdown) return { error: 'empty_page', warnings };
   return { markdown: `${markdown}\n`, warnings: [...new Set(warnings)], source };

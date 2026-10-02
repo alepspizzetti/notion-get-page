@@ -18,7 +18,7 @@ import (
 
 var durationPattern = regexp.MustCompile(`^([1-9][0-9]*)([smhd])$`)
 
-const cacheFormatVersion = 4
+const cacheFormatVersion = 5
 
 func ParseDuration(input string) (time.Duration, error) {
 	match := durationPattern.FindStringSubmatch(strings.ToLower(strings.TrimSpace(input)))

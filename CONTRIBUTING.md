@@ -2,7 +2,7 @@
 
 [Leia em português (Brasil)](CONTRIBUTING.pt-BR.md)
 
-Thanks for helping improve `notion-getpage`. The CLI reads Notion pages available to the signed-in user and returns Markdown for AI agents. Start with the [README](README.md) for usage and the [PRD](PRD.md) for requirements and known limits.
+Thanks for helping improve `notion-getpage`. The CLI reads Notion pages available to the signed-in user and returns Markdown for AI agents. Start with the [README](README.md) for usage and known limits.
 
 ## Set up locally
 
@@ -30,7 +30,7 @@ On Linux, sign in with `./bin/notion-getpage login` to test private pages. You n
 
 1. Describe the problem and the expected Markdown or CLI behavior. For extraction changes, include the Notion block types involved.
 2. Keep Markdown on `stdout` and diagnostics on `stderr`. Preserve exit codes and report incomplete conversions as warnings.
-3. Add a focused test when it can verify behavior independently of the implementation. Update the README or PRD when user-facing behavior or a requirement changes.
+3. Add a focused test when it can verify behavior independently of the implementation. Update the README when user-facing behavior changes.
 4. Format changed Go files with `gofmt`, then run `go test ./...`, `go vet ./...`, and the build command above.
 5. If the change affects page extraction, run a manual check with `--refresh` so the cache cannot hide the result. Compare the generated Markdown with the page, including collapsed blocks and nested content.
 

@@ -1,6 +1,6 @@
 # notion-getpage
 
-CLI em Go para ler uma página do Notion pela sessão do usuário e entregar Markdown a agentes de IA. Consulte o [PRD](PRD.md) para requisitos e limites ainda em validação. Para colaborar, veja [Como contribuir](CONTRIBUTING.pt-BR.md) ou [Contributing](CONTRIBUTING.md).
+CLI em Go para ler uma página do Notion pela sessão do usuário e entregar Markdown a agentes de IA. Para colaborar, veja [Como contribuir](CONTRIBUTING.pt-BR.md) ou [Contributing](CONTRIBUTING.md).
 
 ## Estado
 
@@ -47,6 +47,7 @@ O próprio programa gerencia o prazo do cache: grava a data de vencimento e igno
 ## Limitações atuais
 
 - O CLI abre automaticamente os toggles recolhidos antes de extrair a página. Se algum não abrir, emite um aviso no `stderr`.
+- O Markdown inclui uma seção de comentários com as discussões e respostas visíveis no painel do Notion, associadas ao trecho comentado quando possível.
 - O método principal seleciona o conteúdo da página e usa a cópia em Markdown do Notion. Se ela falhar, há uma conversão básica da página renderizada, com aviso no `stderr`.
 - Bancos de dados, embeds, mídia e páginas muito longas podem não ser extraídos por completo no modo de conversão da página renderizada.
 - A primeira execução pode precisar baixar o navegador. Para uma distribuição totalmente offline, será necessário publicar um pacote por plataforma que o inclua.
