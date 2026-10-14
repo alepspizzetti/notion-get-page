@@ -62,8 +62,11 @@ func ProfileDir() (string, error) {
 	if value := os.Getenv("NOTION_GETPAGE_PROFILE_DIR"); value != "" {
 		return value, nil
 	}
-	dir, err := RuntimeDir()
-	return filepath.Join(dir, "profile"), err
+	if value := os.Getenv("XDG_STATE_HOME"); value != "" {
+		return filepath.Join(value, "notion-getpage", "profile"), nil
+	}
+	home, err := os.UserHomeDir()
+	return filepath.Join(home, ".local", "state", "notion-getpage", "profile"), err
 }
 
 func RuntimeDir() (string, error) {

@@ -80,13 +80,22 @@ func TestRuntimeStorageAndLegacyCleanup(t *testing.T) {
 	t.Setenv("XDG_RUNTIME_DIR", runtimeDir)
 	t.Setenv("XDG_DATA_HOME", dataDir)
 	t.Setenv("XDG_CACHE_HOME", cacheHome)
+	stateHome := t.TempDir()
+	t.Setenv("XDG_STATE_HOME", stateHome)
 	t.Setenv("NOTION_GETPAGE_PROFILE_DIR", "")
 	t.Setenv("NOTION_GETPAGE_CACHE_DIR", "")
 	t.Setenv("NOTION_GETPAGE_BROWSER_DIR", "")
 
 	profile, err := ProfileDir()
-	if err != nil || profile != filepath.Join(runtimeDir, "notion-getpage", "profile") {
+	if err != nil || profile != filepath.Join(stateHome, "notion-getpage", "profile") {
 		t.Fatalf("profile = %q, err = %v", profile, err)
+	}
+	t.Setenv("XDG_STATE_HOME", "")
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	profile, err = ProfileDir()
+	if err != nil || profile != filepath.Join(home, ".local", "state", "notion-getpage", "profile") {
+		t.Fatalf("fallback profile = %q, err = %v", profile, err)
 	}
 	cache, err := CacheDir()
 	if err != nil || cache != filepath.Join(runtimeDir, "notion-getpage", "cache") {
